@@ -1,4 +1,18 @@
 const nodemailer = require('nodemailer');
+const dns = require('dns');
+
+/**
+ * Force DNS to resolve to an IPv4 address.
+ * Node 17+ defaults to IPv6, which breaks on Render's free tier.
+ */
+const getIPv4Host = (hostname) => {
+  return new Promise((resolve) => {
+    dns.lookup(hostname, 4, (err, address) => {
+      if (err) resolve(hostname);
+      else resolve(address);
+    });
+  });
+};
 
 /**
  * Send email using Nodemailer.
@@ -19,19 +33,24 @@ const sendEmail = async ({ to, subject, text, html, attachments }) => {
     return { success: true, logged: true };
   }
 
+  // Resolve IPv4 address to fix Render's ENETUNREACH IPv6 bug
+  const ipv4Host = await getIPv4Host(host);
+
   // Create Nodemailer SMTP transporter
   const transporter = nodemailer.createTransport({
-    host,
+    host: ipv4Host,
     port,
     secure: port == 465, // true for 465, false for other ports
     auth: {
       user,
       pass,
     },
-    family: 4, // Force IPv4 to prevent ENETUNREACH on Render's IPv6 network
-    connectionTimeout: 10000, // 10 seconds max wait
-    greetingTimeout: 10000,
-    socketTimeout: 10000,
+    tls: {
+      servername: host, // Ensure TLS uses 'smtp.gmail.com' and not the raw IP
+    },
+    connectionTimeout: 15000,
+    greetingTimeout: 15000,
+    socketTimeout: 15000,
   });
 
   const fromEmail = process.env.SMTP_FROM || user;
