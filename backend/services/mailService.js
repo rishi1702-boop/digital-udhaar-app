@@ -1,0 +1,55 @@
+const nodemailer = require('nodemailer');
+
+/**
+ * Send email using Nodemailer.
+ * Falls back to logging to console if SMTP details are not configured.
+ */
+const sendEmail = async ({ to, subject, text, html, attachments }) => {
+  const host = process.env.SMTP_HOST;
+  const port = process.env.SMTP_PORT || 587;
+  const user = process.env.SMTP_USER;
+  const pass = process.env.SMTP_PASS;
+
+  // Fallback to console log if server SMTP settings are missing
+  if (!host || !user || !pass) {
+    console.warn('⚠️ SMTP settings are not configured. Logging details to console:');
+    console.log(`To: ${to}`);
+    console.log(`Subject: ${subject}`);
+    console.log(`Body:\n${text || html}`);
+    return { success: true, logged: true };
+  }
+
+  // Create Nodemailer SMTP transporter
+  const transporter = nodemailer.createTransport({
+    host,
+    port,
+    secure: port == 465, // true for 465, false for other ports
+    auth: {
+      user,
+      pass,
+    },
+  });
+
+  const fromEmail = process.env.SMTP_FROM || user;
+
+  // Send mail using transporter
+  const info = await transporter.sendMail({
+    from: `"${process.env.APP_NAME || 'Digital Udhaar'}" <${fromEmail}>`,
+    to,
+    subject,
+    text,
+    html,
+    attachments,
+  });
+
+  console.log(`✉️ Email sent: ${info.messageId}`);
+  
+  if (host === 'smtp.ethereal.email') {
+    console.log('Preview URL: %s', nodemailer.getTestMessageUrl(info));
+    info.previewUrl = nodemailer.getTestMessageUrl(info);
+  }
+
+  return { success: true, messageId: info.messageId, info };
+};
+
+module.exports = { sendEmail };
