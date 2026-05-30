@@ -4,15 +4,13 @@ import Header from '../components/Layout/Header';
 import Loader from '../components/Common/Loader';
 import { useLanguage } from '../context/LanguageContext';
 import { toast } from 'react-toastify';
-import { HiOutlineChatAlt2, HiOutlinePaperAirplane } from 'react-icons/hi';
+import { HiOutlineChatAlt2 } from 'react-icons/hi';
+import { FaWhatsapp } from 'react-icons/fa';
 
 const RemindersPage = () => {
   const { t } = useLanguage();
   const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [sending, setSending] = useState({});
-  const [bulkSending, setBulkSending] = useState(false);
-  const [method, setMethod] = useState('sms');
 
   useEffect(() => {
     const fetch = async () => {
@@ -25,22 +23,14 @@ const RemindersPage = () => {
     fetch();
   }, []);
 
-  const sendOne = async (customerId) => {
-    setSending(p => ({ ...p, [customerId]: true }));
-    try {
-      const { data } = await API.post(`/reminders/send/${customerId}`, { method });
-      toast.success(data.message);
-    } catch (err) { toast.error(err.response?.data?.message || 'Failed'); }
-    finally { setSending(p => ({ ...p, [customerId]: false })); }
-  };
-
-  const sendBulk = async () => {
-    setBulkSending(true);
-    try {
-      const { data } = await API.post('/reminders/send-bulk', { method });
-      toast.success(data.message);
-    } catch (err) { toast.error('Bulk send failed'); }
-    finally { setBulkSending(false); }
+  const sendWhatsApp = (customer) => {
+    let phone = customer.phone.replace(/\D/g, '');
+    if (phone.length === 10) phone = '91' + phone; // Default to India if no country code
+    
+    const message = encodeURIComponent(
+      `Hello ${customer.name}, this is a reminder that ₹${customer.balance} is pending in your Udhaar account.`
+    );
+    window.open(`https://wa.me/${phone}?text=${message}`, '_blank');
   };
 
   if (loading) return <><Header title={t('reminders')} subtitle={t('sendPaymentReminders')} /><Loader fullPage /></>;
@@ -52,9 +42,6 @@ const RemindersPage = () => {
         <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
           <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>{customers.length} {t('customersWithDues')}</span>
         </div>
-        <button className="btn btn-primary" onClick={sendBulk} disabled={bulkSending || customers.length === 0}>
-          <HiOutlinePaperAirplane /> {bulkSending ? t('sending') : t('sendToAll')}
-        </button>
       </div>
 
       {customers.length === 0 ? (
@@ -71,8 +58,12 @@ const RemindersPage = () => {
                   <td><span className={`risk-badge risk-${c.riskLevel || 'low'}`}>{t(c.riskLevel || 'low')}</span></td>
                   <td className="amount-credit" style={{ fontWeight: 600 }}>₹{c.balance.toLocaleString('en-IN')}</td>
                   <td>
-                    <button className="btn btn-outline btn-sm" onClick={() => sendOne(c._id)} disabled={sending[c._id]}>
-                      <HiOutlineChatAlt2 /> {sending[c._id] ? t('sending') : t('send')}
+                    <button 
+                      className="btn btn-outline btn-sm" 
+                      onClick={() => sendWhatsApp(c)}
+                      style={{ color: '#25D366', borderColor: '#25D366' }}
+                    >
+                      <FaWhatsapp style={{ fontSize: '1.2em' }} /> WhatsApp
                     </button>
                   </td>
                 </tr>
