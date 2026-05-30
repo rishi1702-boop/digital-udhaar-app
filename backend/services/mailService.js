@@ -28,6 +28,7 @@ const sendEmail = async ({ to, subject, text, html, attachments }) => {
       user,
       pass,
     },
+    family: 4, // Force IPv4 to prevent ENETUNREACH on Render's IPv6 network
     connectionTimeout: 10000, // 10 seconds max wait
     greetingTimeout: 10000,
     socketTimeout: 10000,
