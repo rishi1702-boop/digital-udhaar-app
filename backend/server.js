@@ -37,18 +37,8 @@ app.get('/api/health', (req, res) => {
 // Error handler
 app.use(errorHandler);
 
-// Serve frontend in production
-if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(__dirname, '../frontend/dist')));
-
-  app.get('*', (req, res) =>
-    res.sendFile(
-      path.resolve(__dirname, '../', 'frontend', 'dist', 'index.html')
-    )
-  );
-} else {
-  app.get('/', (req, res) => res.send('API is running...'));
-}
+// Serve frontend
+app.get('/', (req, res) => res.send('Digital Udhaar Khata API is running securely...'));
 
 const PORT = process.env.PORT || 5000;
 
