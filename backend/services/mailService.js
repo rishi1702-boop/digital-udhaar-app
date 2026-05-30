@@ -28,6 +28,9 @@ const sendEmail = async ({ to, subject, text, html, attachments }) => {
       user,
       pass,
     },
+    connectionTimeout: 10000, // 10 seconds max wait
+    greetingTimeout: 10000,
+    socketTimeout: 10000,
   });
 
   const fromEmail = process.env.SMTP_FROM || user;
