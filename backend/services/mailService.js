@@ -38,23 +38,29 @@ const sendEmail = async ({ to, subject, text, html, attachments }) => {
   const appName = process.env.APP_NAME || 'Udhaar App';
 
   // Send mail using transporter
-  const info = await transporter.sendMail({
-    from: `"${appName}" <${fromEmail}>`,
-    to,
-    subject,
-    text,
-    html,
-    attachments,
-  });
+  try {
+    const info = await transporter.sendMail({
+      from: `"${appName}" <${fromEmail}>`,
+      to,
+      subject,
+      text,
+      html,
+      attachments,
+    });
 
-  console.log(`✉️ Email sent: ${info.messageId}`);
-  
-  if (host === 'smtp.ethereal.email') {
-    console.log('Preview URL: %s', nodemailer.getTestMessageUrl(info));
-    info.previewUrl = nodemailer.getTestMessageUrl(info);
+    console.log(`✉️ Email sent: ${info.messageId}`);
+    
+    if (host === 'smtp.ethereal.email') {
+      console.log('Preview URL: %s', nodemailer.getTestMessageUrl(info));
+      info.previewUrl = nodemailer.getTestMessageUrl(info);
+    }
+
+    return { success: true, messageId: info.messageId, info };
+  } catch (error) {
+    console.error('❌ Nodemailer Error:', error.message);
+    console.error(error);
+    throw error;
   }
-
-  return { success: true, messageId: info.messageId, info };
 };
 
 module.exports = { sendEmail };
