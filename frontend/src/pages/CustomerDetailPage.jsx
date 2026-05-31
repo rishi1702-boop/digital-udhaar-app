@@ -35,7 +35,7 @@ const CustomerDetailPage = () => {
         API.get(`/customers/${id}`),
         API.get(`/transactions?customer=${id}&limit=200`),
       ]);
-      setCustomer(custRes.data.data);
+      setCustomer(custRes.data.data.customer || custRes.data.data);
       setTransactions(txnRes.data.data);
     } catch (err) { toast.error('Failed to load customer'); }
     finally { setLoading(false); }
