@@ -1,16 +1,33 @@
-# React + Vite
+# Frontend - Digital Udhaar Khata
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This is the frontend component of the Digital Udhaar Khata application, built using React.js and Vite. It serves as the Single Page Application (SPA) providing the user interface for store owners to manage their customers, transactions, and cash flow.
 
-Currently, two official plugins are available:
+## Core Setup
+- src/App.jsx: The root component setting up React Router for navigation and global context providers.
+- src/main.jsx: Renders the React application into the DOM.
+- src/index.css: Contains all global CSS styles, custom design systems, and responsive layout rules.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## API Configuration
+- src/api/axios.js: Configures the Axios HTTP client with the correct base URL for making requests to the backend server.
 
-## React Compiler
+## State Management (Context)
+- src/context/AuthContext.jsx: Manages global user authentication state, handling login sessions and profile data across the app.
+- src/context/LanguageContext.jsx: Provides multi-language support (English and Telugu) across all UI components.
+- src/hooks/useAuth.js: A custom React hook for easily accessing authentication state in any component.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Pages
+These files represent the main screens of the application.
+- src/pages/HomePage.jsx: The public landing page showcasing the application features to new users.
+- src/pages/LoginPage.jsx & RegisterPage.jsx: Authentication screens for logging in or creating a new store owner account.
+- src/pages/DashboardPage.jsx: The main dashboard providing a high-level overview of total outstanding amounts, cash on hand, and recent activity.
+- src/pages/CustomersPage.jsx: A page displaying a searchable list of all registered customers and their current balances.
+- src/pages/CustomerDetailPage.jsx: A detailed ledger for a specific customer, allowing the owner to add new transactions, view history, and email statements.
+- src/pages/CashbookPage.jsx: A dedicated tracker for daily shop expenses and cash-in hand, completely separate from customer credit.
+- src/pages/SettingsPage.jsx: Allows the store owner to update their profile information and securely manage their UPI ID behind a password prompt.
+- src/pages/NotFoundPage.jsx: A fallback error page displayed when a user navigates to an invalid URL.
 
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Components
+- src/components/Layout/Header.jsx: The top navigation bar displaying the current page title and user actions.
+- src/components/Layout/Sidebar.jsx: The side navigation menu for switching between different pages in the dashboard.
+- src/components/Common/Modal.jsx: A reusable popup component used for forms throughout the application.
+- src/components/Common/Loader.jsx: A visual loading spinner displayed during API requests.
