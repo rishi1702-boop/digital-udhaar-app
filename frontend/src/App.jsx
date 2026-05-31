@@ -15,6 +15,7 @@ import RemindersPage from './pages/RemindersPage';
 import SettingsPage from './pages/SettingsPage';
 import HomePage from './pages/HomePage';
 import PaymentCheckoutPage from './pages/PaymentCheckoutPage';
+import NotFoundPage from './pages/NotFoundPage';
 import Loader from './components/Common/Loader';
 
 const ProtectedRoute = ({ children }) => {
@@ -43,7 +44,7 @@ const AppRoutes = () => (
       <Route path="reminders" element={<RemindersPage />} />
       <Route path="settings" element={<SettingsPage />} />
     </Route>
-    <Route path="*" element={<Navigate to="/" />} />
+    <Route path="*" element={<NotFoundPage />} />
   </Routes>
 );
 

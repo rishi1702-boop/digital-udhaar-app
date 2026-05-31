@@ -104,24 +104,58 @@ const getMe = async (req, res, next) => {
 // @route   PUT /api/auth/me
 const updateProfile = async (req, res, next) => {
   try {
-    const { name, storeName, phone, upiId, language } = req.body;
+    const { name, storeName, phone, upiId, language, password } = req.body;
     
-    const updateData = { name, storeName, phone, upiId, language };
+    // Fetch user with password field
+    const currentUser = await User.findById(req.user._id).select('+password');
+    if (!currentUser) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    // Security Check: If UPI ID is being updated, verify password
+    if (upiId !== undefined && upiId !== currentUser.upiId) {
+      if (!password) {
+        return res.status(401).json({ 
+          success: false, 
+          message: 'Password verification is required to update UPI ID' 
+        });
+      }
+
+      const isMatch = await currentUser.comparePassword(password);
+      if (!isMatch) {
+        return res.status(401).json({ 
+          success: false, 
+          message: 'Incorrect password provided for verification' 
+        });
+      }
+    }
+
+    // Update fields
+    if (name) currentUser.name = name;
+    if (storeName) currentUser.storeName = storeName;
+    if (phone !== undefined) currentUser.phone = phone;
+    if (upiId !== undefined) currentUser.upiId = upiId;
+    if (language) currentUser.language = language;
     
     // If a new image was uploaded to Cloudinary, save the URL
     if (req.file) {
-      updateData.profileImage = req.file.path;
+      currentUser.profileImage = req.file.path;
     }
 
-    const user = await User.findByIdAndUpdate(
-      req.user._id,
-      updateData,
-      { new: true, runValidators: true }
-    );
+    await currentUser.save();
 
     res.status(200).json({
       success: true,
-      data: user,
+      data: {
+        _id: currentUser._id,
+        name: currentUser.name,
+        email: currentUser.email,
+        storeName: currentUser.storeName,
+        phone: currentUser.phone,
+        upiId: currentUser.upiId,
+        language: currentUser.language,
+        profileImage: currentUser.profileImage,
+      },
     });
   } catch (error) {
     next(error);
