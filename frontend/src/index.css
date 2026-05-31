@@ -160,6 +160,8 @@ input, select, textarea, button { font-family: inherit; }
   display: flex; flex-direction: column; z-index: 100;
   animation: slideInLeft 0.5s ease;
 }
+.sidebar-backdrop { display: none; }
+.mobile-menu-btn { display: none; }
 .sidebar-logo {
   display: flex; align-items: center; gap: 12px;
   padding: 8px 12px; margin-bottom: 32px;
@@ -375,6 +377,8 @@ input, select, textarea, button { font-family: inherit; }
 
 /* ─── RESPONSIVE ─── */
 @media (max-width: 768px) {
+  .mobile-menu-btn { display: flex; align-items: center; justify-content: center; }
+  .sidebar-backdrop { display: block; }
   .sidebar { transform: translateX(-100%); transition: var(--transition); }
   .sidebar.open { transform: translateX(0); }
   .main-content { margin-left: 0; padding: calc(var(--header-height) + 16px) 16px 16px; }

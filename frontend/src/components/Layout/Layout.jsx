@@ -10,7 +10,7 @@ const Layout = () => {
     <div className="app-layout">
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <main className="main-content">
-        <Outlet />
+        <Outlet context={{ toggleSidebar: () => setSidebarOpen(prev => !prev) }} />
         <footer className="app-footer">
           <p>&copy; {new Date().getFullYear()} Digital Udhaar Khata. All rights reserved.</p>
         </footer>

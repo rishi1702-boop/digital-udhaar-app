@@ -1,10 +1,12 @@
 import { useState, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useOutletContext } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { useLanguage } from '../../context/LanguageContext';
 import { HiOutlineMenuAlt2, HiOutlineUser, HiOutlineLogout, HiOutlineCog } from 'react-icons/hi';
 
-const Header = ({ title, subtitle, onToggleSidebar }) => {
+const Header = ({ title, subtitle }) => {
+  const outletContext = useOutletContext();
+  const toggleSidebar = outletContext?.toggleSidebar || (() => {});
   const { user, logout } = useAuth();
   const { t } = useLanguage();
   const navigate = useNavigate();
@@ -29,7 +31,7 @@ const Header = ({ title, subtitle, onToggleSidebar }) => {
   return (
     <header className="header">
       <div className="header-title">
-        <button className="btn-icon btn-ghost" onClick={onToggleSidebar} style={{display:'none', marginRight:'8px'}} id="menu-toggle">
+        <button className="btn-icon btn-ghost mobile-menu-btn" onClick={toggleSidebar} style={{marginRight:'8px'}} id="menu-toggle">
           <HiOutlineMenuAlt2 size={22} />
         </button>
         <h1>{title}</h1>

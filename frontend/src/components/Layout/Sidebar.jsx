@@ -16,7 +16,7 @@ const Sidebar = ({ isOpen, onClose }) => {
 
   return (
     <>
-      {isOpen && <div className="sidebar-backdrop" onClick={onClose} style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.5)',zIndex:99,display:'none'}} />}
+      {isOpen && <div className="sidebar-backdrop" onClick={onClose} style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.5)',zIndex:99}} />}
       <aside className={`sidebar ${isOpen ? 'open' : ''}`}>
         <div className="sidebar-logo">
           <div className="sidebar-logo-icon">₹</div>
