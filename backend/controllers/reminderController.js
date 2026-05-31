@@ -7,7 +7,8 @@ const sendReminderEmail = async (customer, storeName, upiId) => {
     throw new Error('Customer does not have an email address');
   }
 
-  const checkoutUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/checkout/${customer._id}`;
+  // Use the production Vercel URL as the default fallback
+  const checkoutUrl = `${process.env.FRONTEND_URL || 'https://digital-udhaar-app.vercel.app'}/checkout/${customer._id}`;
 
   const html = `
     <div style="font-family: 'Inter', sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
