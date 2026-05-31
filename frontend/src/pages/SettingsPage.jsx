@@ -3,6 +3,7 @@ import API from '../api/axios';
 import { useAuth } from '../hooks/useAuth';
 import { useLanguage } from '../context/LanguageContext';
 import Header from '../components/Layout/Header';
+import Modal from '../components/Common/Modal';
 import { toast } from 'react-toastify';
 import { HiOutlineCamera } from 'react-icons/hi';
 
@@ -22,6 +23,8 @@ const SettingsPage = () => {
   const [saving, setSaving] = useState(false);
 
   const [isEditing, setIsEditing] = useState(false);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [password, setPassword] = useState('');
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -31,8 +34,8 @@ const SettingsPage = () => {
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const submitProfileData = async (e) => {
+    if (e) e.preventDefault();
     setSaving(true);
     try {
       const formData = new FormData();
@@ -41,6 +44,10 @@ const SettingsPage = () => {
       formData.append('phone', form.phone);
       formData.append('upiId', form.upiId);
       
+      if (password) {
+        formData.append('password', password);
+      }
+
       if (selectedFile) {
         formData.append('profileImage', selectedFile);
       }
@@ -53,10 +60,24 @@ const SettingsPage = () => {
       setProfileImage(data.data.profileImage || '');
       setSelectedFile(null);
       setPreviewUrl('');
+      setPassword('');
+      setShowPasswordModal(false);
       toast.success(t('profileUpdated'));
       setIsEditing(false);
-    } catch (err) { toast.error('Update failed'); }
+    } catch (err) { 
+      toast.error(err.response?.data?.message || 'Update failed');
+      setPassword('');
+    }
     finally { setSaving(false); }
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (form.upiId !== (user?.upiId || '')) {
+      setShowPasswordModal(true);
+    } else {
+      submitProfileData();
+    }
   };
 
   const displayImage = previewUrl || profileImage;
@@ -166,6 +187,30 @@ const SettingsPage = () => {
           </div>
         )}
       </div>
+      
+      <Modal isOpen={showPasswordModal} onClose={() => setShowPasswordModal(false)} title="Security Verification">
+        <form onSubmit={submitProfileData}>
+          <div className="form-group">
+            <label className="form-label">Enter your password to change UPI ID</label>
+            <input 
+              type="password" 
+              className="form-input" 
+              value={password} 
+              onChange={(e) => setPassword(e.target.value)} 
+              required 
+              autoFocus 
+            />
+          </div>
+          <div style={{ display: 'flex', gap: '12px', marginTop: '16px' }}>
+            <button className="btn btn-outline" type="button" onClick={() => setShowPasswordModal(false)} style={{ flex: 1 }}>
+              {t('cancel')}
+            </button>
+            <button className="btn btn-primary" type="submit" disabled={saving} style={{ flex: 1 }}>
+              {saving ? 'Verifying...' : 'Verify & Save'}
+            </button>
+          </div>
+        </form>
+      </Modal>
     </>
   );
 };
