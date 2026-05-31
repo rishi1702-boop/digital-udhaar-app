@@ -6,7 +6,8 @@ const {
   createCustomer,
   updateCustomer,
   deleteCustomer,
-  downloadStatement
+  downloadStatement,
+  emailStatement
 } = require('../controllers/customerController');
 const { protect } = require('../middleware/authMiddleware');
 
@@ -14,6 +15,7 @@ router.use(protect);
 
 router.route('/').get(getCustomers).post(createCustomer);
 router.route('/:id/statement').get(downloadStatement);
+router.route('/:id/email-statement').post(emailStatement);
 router.route('/:id').get(getCustomer).put(updateCustomer).delete(deleteCustomer);
 
 module.exports = router;

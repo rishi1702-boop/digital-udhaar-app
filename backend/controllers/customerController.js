@@ -1,6 +1,7 @@
 const Customer = require('../models/Customer');
 const Transaction = require('../models/Transaction');
 const PDFDocument = require('pdfkit');
+const { sendEmail } = require('../services/mailService');
 
 // @desc    Get all customers for logged-in owner
 // @route   GET /api/customers
@@ -250,6 +251,108 @@ const downloadStatement = async (req, res, next) => {
   }
 };
 
+// @desc    Email customer statement as HTML
+// @route   POST /api/customers/:id/email-statement
+const emailStatement = async (req, res, next) => {
+  try {
+    const customer = await Customer.findOne({
+      _id: req.params.id,
+      owner: req.user._id,
+    });
+
+    if (!customer) {
+      return res.status(404).json({ success: false, message: 'Customer not found' });
+    }
+
+    if (!customer.email) {
+      return res.status(400).json({ success: false, message: 'Customer does not have an email address' });
+    }
+
+    const transactions = await Transaction.find({ customer: customer._id }).sort({ date: 1 });
+
+    let totalCredit = 0;
+    let totalDebit = 0;
+    
+    let tableRows = '';
+    transactions.forEach(txn => {
+      const dateStr = new Date(txn.date).toLocaleDateString('en-IN');
+      const desc = txn.description || '-';
+      const typeStr = txn.type === 'credit' ? 'Udhaar' : 'Jama';
+      const color = txn.type === 'credit' ? '#dc2626' : '#059669';
+      
+      if (txn.type === 'credit') totalCredit += txn.amount;
+      else totalDebit += txn.amount;
+
+      tableRows += `
+        <tr>
+          <td style="padding: 10px; border-bottom: 1px solid #eee; font-size: 14px;">${dateStr}</td>
+          <td style="padding: 10px; border-bottom: 1px solid #eee; font-size: 14px;">${desc}</td>
+          <td style="padding: 10px; border-bottom: 1px solid #eee; font-size: 14px; font-weight: bold; color: ${color};">${typeStr}</td>
+          <td style="padding: 10px; border-bottom: 1px solid #eee; font-size: 14px; text-align: right;">₹${txn.amount.toLocaleString('en-IN')}</td>
+        </tr>
+      `;
+    });
+
+    const storeName = req.user.storeName;
+
+    const html = `
+      <div style="font-family: 'Inter', sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
+        <div style="text-align: center; margin-bottom: 30px;">
+          <h2 style="color: #0f172a; margin: 0;">${storeName}</h2>
+          <p style="color: #64748b; margin: 5px 0 0 0;">Account Statement for <strong>${customer.name}</strong></p>
+        </div>
+        
+        <div style="background: #f8fafc; padding: 15px; border-radius: 8px; margin-bottom: 30px; display: flex; justify-content: space-between;">
+          <div>
+            <span style="font-size: 12px; color: #64748b; text-transform: uppercase;">Current Outstanding Balance</span><br/>
+            <span style="font-size: 24px; font-weight: 800; color: #dc2626;">₹${customer.balance.toLocaleString('en-IN')}</span>
+          </div>
+          <div style="text-align: right;">
+            <span style="font-size: 12px; color: #64748b;">Generated On</span><br/>
+            <span style="font-size: 14px; font-weight: 600;">${new Date().toLocaleDateString('en-IN')}</span>
+          </div>
+        </div>
+
+        <h3 style="font-size: 16px; color: #334155; margin-bottom: 15px;">Transaction History</h3>
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px;">
+          <thead>
+            <tr>
+              <th style="text-align: left; padding: 10px; border-bottom: 2px solid #e2e8f0; color: #64748b; font-size: 12px; text-transform: uppercase;">Date</th>
+              <th style="text-align: left; padding: 10px; border-bottom: 2px solid #e2e8f0; color: #64748b; font-size: 12px; text-transform: uppercase;">Description</th>
+              <th style="text-align: left; padding: 10px; border-bottom: 2px solid #e2e8f0; color: #64748b; font-size: 12px; text-transform: uppercase;">Type</th>
+              <th style="text-align: right; padding: 10px; border-bottom: 2px solid #e2e8f0; color: #64748b; font-size: 12px; text-transform: uppercase;">Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${tableRows}
+          </tbody>
+        </table>
+
+        <div style="border-top: 2px solid #e2e8f0; padding-top: 15px;">
+          <p style="margin: 5px 0; font-size: 14px;"><strong>Total Udhaar Given:</strong> ₹${totalCredit.toLocaleString('en-IN')}</p>
+          <p style="margin: 5px 0; font-size: 14px;"><strong>Total Jama Received:</strong> ₹${totalDebit.toLocaleString('en-IN')}</p>
+        </div>
+
+        <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;" />
+        <p style="font-size: 12px; color: #999; text-align: center;">Powered by Digital Udhaar Khata</p>
+      </div>
+    `;
+
+    await sendEmail({
+      to: customer.email,
+      subject: \`Account Statement from \${storeName}\`,
+      html: html,
+    });
+
+    res.status(200).json({
+      success: true,
+      message: \`Statement emailed successfully to \${customer.email}\`,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   getCustomers,
   getCustomer,
@@ -257,4 +360,5 @@ module.exports = {
   updateCustomer,
   deleteCustomer,
   downloadStatement,
+  emailStatement,
 };
