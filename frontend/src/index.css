@@ -335,7 +335,7 @@ input, select, textarea, button { font-family: inherit; }
 .search-box {
   position: relative; width: 100%; max-width: 320px;
 }
-.search-box input { padding-left: 40px; }
+.search-box .form-input { padding-left: 40px; }
 .search-box svg { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 1rem; }
 
 /* ─── CUSTOMER DETAIL ─── */

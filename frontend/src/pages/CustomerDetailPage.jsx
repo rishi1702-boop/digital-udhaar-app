@@ -11,7 +11,7 @@ import {
   HiOutlineArrowLeft, HiOutlineArrowUp, HiOutlineArrowDown,
   HiOutlineChatAlt2, HiOutlineDocumentDownload, HiOutlineTrash,
   HiOutlinePhone, HiOutlineLocationMarker, HiOutlineCalendar,
-  HiOutlineExclamation, HiOutlineCheckCircle,
+  HiOutlineExclamation, HiOutlineCheckCircle, HiOutlineMail
 } from 'react-icons/hi';
 
 const CustomerDetailPage = () => {
@@ -27,6 +27,7 @@ const CustomerDetailPage = () => {
   const [submitting, setSubmitting] = useState(false);
   const [deleteId, setDeleteId] = useState(null);
   const [lightboxImg, setLightboxImg] = useState(null);
+  const [sendingEmail, setSendingEmail] = useState(false);
 
   const fetchData = async () => {
     try {
@@ -94,6 +95,22 @@ const CustomerDetailPage = () => {
       window.URL.revokeObjectURL(url);
       toast.success(t('downloadStatement'));
     } catch (err) { toast.error('Download failed'); }
+  };
+
+  const handleEmailStatement = async () => {
+    if (!customer.email) {
+      toast.error('Please add an email address to this customer first.');
+      return;
+    }
+    setSendingEmail(true);
+    try {
+      const { data } = await API.post(`/customers/${id}/email-statement`);
+      toast.success(data.message || 'Statement sent successfully');
+    } catch (err) { 
+      toast.error(err.response?.data?.message || 'Failed to send email statement'); 
+    } finally { 
+      setSendingEmail(false); 
+    }
   };
 
   const openTxnModal = (type) => {
@@ -164,6 +181,9 @@ const CustomerDetailPage = () => {
             </button>
             <button className="btn btn-outline btn-sm" onClick={handleDownloadPDF}>
               <HiOutlineDocumentDownload /> {t('downloadStatement')}
+            </button>
+            <button className="btn btn-outline btn-sm" onClick={handleEmailStatement} disabled={sendingEmail}>
+              <HiOutlineMail /> {sendingEmail ? 'Sending...' : 'Email Statement'}
             </button>
           </div>
         </div>
